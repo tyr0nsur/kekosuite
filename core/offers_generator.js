@@ -46,14 +46,15 @@ async function generateOffers() {
 
                 await connection.execute(`
                     INSERT INTO catalog_target_offers 
-                    (offer_code, title, description, image, icon, end_timestamp, price_in_credits, price_in_activity_points, activity_points_type, purchase_limit) 
-                    VALUES (?, ?, ?, '', '', ?, ?, 0, 0, 5)
+                    (offer_code, title, description, image, icon, end_timestamp, credits, points, points_type, purchase_limit, catalog_item, vars) 
+                    VALUES (?, ?, ?, '', '', ?, ?, 0, 0, 5, ?, '')
                 `, [
                     offerCode,
                     title,
                     desc,
                     Math.floor(Date.now() / 1000) + (86400 * 3), // 3 days from now
-                    newPrice
+                    newPrice,
+                    item.id
                 ]);
             }
             console.log(`✅ Se generaron 3 nuevas ofertas con éxito.`);
