@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Versión-1.0.0-blue.svg?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Versión-1.0.5-blue.svg?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/Autor-eMiLiOp-orange.svg?style=flat-square" alt="Author">
   <img src="https://img.shields.io/badge/Soporte-Arcturus%20Morningstar-green.svg?style=flat-square" alt="Support">
   <img src="https://img.shields.io/badge/Entorno-Linux%20CLI-lightgrey.svg?style=flat-square" alt="CLI">
@@ -19,16 +19,18 @@
 
 ## 📖 Acerca de KekoSuite
 
-**KekoSuite** es una potente interfaz CLI (Command Line Interface) desarrollada en Node.js y Bash diseñada para administradores y dueños de retroservidores Habbo. Olvídate de arreglar furnis a mano, crear ropa SQL por SQL, o reiniciar tu servidor manualmente. KekoSuite automatiza las tareas más tediosas del hotel.
+**KekoSuite** es una herramienta de terminal (TUI) todo en uno diseñada específicamente para administradores de hoteles Habbo basados en el emulador Arcturus Morningstar. Automatiza el mantenimiento del catálogo, sincronización de ropa, limpieza de base de datos y control del servidor de forma interactiva.
 
 ### ✨ Características Principales
 
-- 🛋️ **Importación Inteligente de Furnis:** Extrae furnis directamente desde la API oficial y asigna tipos de interacción automáticamente (*Trofeos, Maniquíes, Wireds, Cajas Crackeables, Mascotas y más*).
-- 👗 **Generador Automático de Ropa:** Detecta y sincroniza sets de ropa en tu base de datos instantáneamente.
-- 🧹 **Limpieza y Saneamiento del Catálogo:** Busca y elimina muebles huérfanos y corrige errores de formato que crashean el cliente Nitro.
-- 🚀 **Control Total del Emulador:** Inicia, detiene, reinicia, monitorea y actualiza tu Arcturus Emulator con un solo botón.
-- 🔧 **Control de Recursos (RAM):** Ajusta los parámetros `-Xms` y `-Xmx` para controlar el consumo de tu servidor.
-- 🔄 **Actualizador del CMS:** Sincroniza y descarga automáticamente actualizaciones desde repositorios de Git.
+* **🕹️ Interfaz Interactiva (TUI):** Menús de navegación con teclado, spinners animados y consola en vivo basados en Node.js.
+* **🔄 Gestor de Tareas en Segundo Plano:** Ejecuta tareas largas como descarga de iconos sin bloquear la herramienta, con un panel de progreso en vivo.
+* **📦 Sincronización Automática:** Descarga e integra furnis y ropa directamente desde la API de HabboFurni.
+* **🧹 Limpieza Inteligente:** Purga de items_base huérfanos, ocultación de páginas vacías y unificación automática de trofeos.
+* **🛍️ Generador de Ofertas Relámpago:** Crea aleatoriamente descuentos del 30% en furnis top para fomentar la economía del hotel.
+* **🖼️ Fetcher de Iconos:** Escanea toda tu DB para descargar los PNGs faltantes en tiempo real.
+* **⚙️ Control del Emulador:** Apaga, enciende (con auto-start CRON), cambia la versión `.jar` y ajusta la memoria RAM directamente desde la CLI.
+* **🔒 Seguridad .env:** Toda tu configuración sensible y credenciales se protegen automáticamente.
 
 ---
 
