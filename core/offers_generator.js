@@ -39,7 +39,8 @@ async function generateOffers() {
         if (items.length > 0) {
             spinner.text = 'Generando nuevas ofertas promocionales...';
             for (const item of items) {
-                const offerCode = `PROMO_${item.catalog_name.toUpperCase()}_${Math.floor(Math.random() * 9999)}`;
+                const shortName = item.catalog_name.toUpperCase().substring(0, 15);
+                const offerCode = `PROMO_${shortName}_${Math.floor(Math.random() * 9999)}`;
                 const title = `¡Oferta Relámpago: ${item.catalog_name}!`;
                 const desc = `Obtén este increíble artículo con un 30% de descuento. ¡Solo por tiempo limitado!`;
                 
