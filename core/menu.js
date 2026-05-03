@@ -6,6 +6,7 @@ const gradient = require('gradient-string');
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const TaskManager = require('./taskManager.js');
 
 if (!fs.existsSync(path.join(__dirname, '../.env'))) {
     console.log(chalk.red('⚠️  No se encontró el archivo .env. Por favor, ejecuta ./run.sh o core/setup.js para iniciar el setup.'));
@@ -30,18 +31,40 @@ async function showHeader() {
 
     const { isRunning, autoStart } = checkServerStatus();
     
-    const statusText = `
+    let statusText = `
 ${chalk.bold('Estado:')} ${isRunning ? chalk.green('● ENCENDIDO') : chalk.red('○ APAGADO')}
 ${chalk.bold('Auto-Start:')} ${autoStart ? chalk.green('Activo') : chalk.gray('Inactivo')}
 ${chalk.bold('RAM:')} ${chalk.cyan(config.emulator_min_ram)} - ${chalk.cyan(config.emulator_max_ram)}
     `.trim();
+
+    const activeTasks = TaskManager.getActiveTasks();
+    const taskIds = Object.keys(activeTasks);
+    if (taskIds.length > 0) {
+        statusText += `\n\n${chalk.magenta.bold('Procesos en Segundo Plano:')}\n`;
+        taskIds.forEach(id => {
+            const task = activeTasks[id];
+            let percent = 0;
+            if (task.total > 0) percent = Math.floor((task.progress / task.total) * 100);
+            
+            let statusColor = chalk.yellow;
+            if (task.status === 'completed') statusColor = chalk.green;
+            else if (task.status === 'failed') statusColor = chalk.red;
+
+            statusText += `${statusColor('●')} ${task.name} - ${chalk.gray(task.message)}\n`;
+            if (task.status === 'running' && task.total > 0) {
+                const filled = Math.round(percent / 5);
+                const bar = '█'.repeat(filled) + '░'.repeat(20 - filled);
+                statusText += `  ${chalk.cyan(bar)} ${percent}%\n`;
+            }
+        });
+    }
 
     console.log(boxen(statusText, {
         padding: 1,
         margin: { bottom: 1 },
         borderStyle: 'round',
         borderColor: isRunning ? 'green' : 'red',
-        title: ' Control del Servidor ',
+        title: ' Panel Principal ',
         titleAlignment: 'center'
     }));
 }
@@ -59,6 +82,7 @@ async function mainMenu() {
                 { name: '🛠️  Mantenimiento y Optimización', value: 'maint' },
                 { name: '🔄 Gestión de Actualizaciones', value: 'update' },
                 { name: '⚙️  Control del Servidor', value: 'server' },
+                { name: '🧹 Limpiar Tareas Completadas', value: 'clear_tasks' },
                 new inquirer.Separator(),
                 { name: '❌ Salir', value: 'exit' }
             ],
@@ -71,6 +95,9 @@ async function mainMenu() {
         case 'maint': return await maintMenu();
         case 'update': return await updateMenu();
         case 'server': return await serverMenu();
+        case 'clear_tasks': 
+            TaskManager.clearCompletedTasks(); 
+            return await mainMenu();
         case 'exit': 
             console.clear(); 
             console.log(chalk.cyan('¡Hasta pronto!\n')); 
@@ -78,9 +105,16 @@ async function mainMenu() {
     }
 }
 
-async function runScript(scriptPath) {
+async function runScriptSync(scriptPath) {
     spawnSync('node', [path.join(__dirname, '..', scriptPath)], { stdio: 'inherit' });
     await inquirer.prompt([{ type: 'input', name: 'pressEnter', message: chalk.gray('Presiona Enter para volver...') }]);
+    await mainMenu();
+}
+
+async function runScriptBg(taskName, scriptPath) {
+    TaskManager.startTask(taskName, scriptPath);
+    console.log(chalk.green(`\n✔ La tarea '${taskName}' ha sido enviada al segundo plano.`));
+    await inquirer.prompt([{ type: 'input', name: 'pressEnter', message: chalk.gray('Presiona Enter para volver al menú y ver el progreso...') }]);
     await mainMenu();
 }
 
@@ -104,8 +138,8 @@ async function furnisMenu() {
             pageSize: 12
         }
     ]);
-    if (option === 'back') await mainMenu();
-    else await runScript(option);
+    if (option === 'back') return await mainMenu();
+    else return await runScriptSync(option);
 }
 
 async function maintMenu() {
@@ -128,8 +162,15 @@ async function maintMenu() {
             pageSize: 12
         }
     ]);
-    if (option === 'back') await mainMenu();
-    else await runScript(option);
+    
+    if (option === 'back') return await mainMenu();
+    else if (option === 'core/icon_fetcher.js') {
+        return await runScriptBg('Descargar Iconos', 'icon_fetcher.js');
+    }
+    else if (option === 'core/catalog_cleaner.js') {
+        return await runScriptBg('Limpiar Catálogo', 'catalog_cleaner.js');
+    }
+    else return await runScriptSync(option);
 }
 
 async function updateMenu() {
@@ -149,8 +190,8 @@ async function updateMenu() {
             pageSize: 10
         }
     ]);
-    if (option === 'back') await mainMenu();
-    else await runScript(option);
+    if (option === 'back') return await mainMenu();
+    else return await runScriptSync(option);
 }
 
 async function serverMenu() {
