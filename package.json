@@ -11,7 +11,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "boxen": "^5.1.2",
+    "chalk": "^4.1.2",
     "dotenv": "^17.4.2",
-    "mysql2": "^3.22.2"
+    "figlet": "^1.11.0",
+    "gradient-string": "^3.0.0",
+    "inquirer": "^8.2.7",
+    "mysql2": "^3.22.2",
+    "ora": "^5.4.1"
   }
 }
