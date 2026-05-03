@@ -2,11 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
 const config = require('../config.js');
+const ora = require('ora');
+const chalk = require('chalk');
 
 const API_TOKEN = config.api_token;
 
 async function fetchMissingIcons() {
-    console.log("=== Descargador de Iconos Faltantes ===");
+    console.log(chalk.cyan.bold('\n=== 🖼️  Descargador de Iconos Faltantes ===\n'));
+    const spinner = ora('Conectando a la base de datos...').start();
 
     const dbConfig = {
         host: config.db_host,
@@ -18,15 +21,16 @@ async function fetchMissingIcons() {
     let connection;
     try {
         connection = await mysql.createConnection(dbConfig);
-        console.log("Conectado a MySQL.");
+        spinner.succeed(chalk.green('Conectado a MySQL.'));
     } catch (err) {
-        console.error("Error conectando a MySQL:", err.message);
+        spinner.fail(chalk.red(`Error conectando a MySQL: ${err.message}`));
         process.exit(1);
     }
 
     try {
+        spinner.start('Analizando furnis en el catálogo...');
         const [rows] = await connection.execute('SELECT id, item_name FROM items_base');
-        console.log(`Analizando ${rows.length} furnis en busca de iconos faltantes...`);
+        spinner.text = `Analizando ${rows.length} furnis en busca de iconos faltantes...`;
 
         let downloadedCount = 0;
 
@@ -39,7 +43,7 @@ async function fetchMissingIcons() {
             const dcrPath = path.join(config.dcr_icons_path, iconName);
 
             if (!fs.existsSync(cmsPath) || !fs.existsSync(dcrPath)) {
-                console.log(`Icono faltante detectado para: ${classname}. Descargando...`);
+                spinner.text = `Descargando icono para: ${chalk.yellow(classname)}...`;
                 
                 try {
                     const res = await fetch(`https://habbofurni.com/api/v1/furniture/${classname}`, {
@@ -68,10 +72,10 @@ async function fetchMissingIcons() {
             }
         }
 
-        console.log(`✅ Proceso completado. Se descargaron ${downloadedCount} iconos faltantes.`);
+        spinner.succeed(chalk.green.bold(`Proceso completado. Se descargaron ${downloadedCount} iconos faltantes.`));
 
     } catch (e) {
-        console.error("Error en el descargador:", e);
+        spinner.fail(chalk.red(`Error en el descargador: ${e.message}`));
     }
 
     await connection.end();

@@ -1,8 +1,11 @@
 const mysql = require('mysql2/promise');
 const config = require('../config.js');
+const ora = require('ora');
+const chalk = require('chalk');
 
 async function cleanCatalog() {
-    console.log("=== Limpiador de Catálogo ===");
+    console.log(chalk.cyan.bold('\n=== 🧹 Limpiador de Catálogo ===\n'));
+    const spinner = ora('Conectando a la base de datos...').start();
 
     const dbConfig = {
         host: config.db_host,
@@ -14,16 +17,14 @@ async function cleanCatalog() {
     let connection;
     try {
         connection = await mysql.createConnection(dbConfig);
-        console.log("Conectado a MySQL.");
+        spinner.succeed(chalk.green('Conectado a MySQL.'));
     } catch (err) {
-        console.error("Error conectando a MySQL:", err.message);
+        spinner.fail(chalk.red(`Error conectando a MySQL: ${err.message}`));
         process.exit(1);
     }
 
-    console.log("Buscando furnis huérfanos en el catálogo...");
+    spinner.start('Buscando furnis huérfanos en el catálogo...');
     try {
-        // En Arcturus, item_ids en catalog_items apunta a items_base.id
-        // Vamos a borrar los catalog_items donde su item_id no exista en items_base.
         const [rows] = await connection.execute(`
             SELECT ci.id, ci.item_ids 
             FROM catalog_items ci 
@@ -32,18 +33,18 @@ async function cleanCatalog() {
         `);
 
         if (rows.length === 0) {
-            console.log("¡El catálogo está limpio! No se encontraron furnis huérfanos.");
+            spinner.info(chalk.blue('El catálogo está limpio. No se encontraron furnis huérfanos.'));
         } else {
-            console.log(`Se encontraron ${rows.length} furnis huérfanos. Eliminando...`);
+            spinner.text = `Se encontraron ${rows.length} furnis huérfanos. Eliminando...`;
             let deletedCount = 0;
             for (const row of rows) {
                 await connection.execute('DELETE FROM catalog_items WHERE id = ?', [row.id]);
                 deletedCount++;
             }
-            console.log(`✅ Se eliminaron ${deletedCount} furnis huérfanos del catálogo.`);
+            spinner.succeed(chalk.green(`Se eliminaron ${deletedCount} furnis huérfanos del catálogo.`));
         }
 
-        console.log("Buscando páginas de catálogo sin contenido...");
+        spinner.start('Buscando páginas de catálogo sin contenido...');
         const [emptyPages] = await connection.execute(`
             SELECT cp.id, cp.caption 
             FROM catalog_pages cp 
@@ -52,19 +53,21 @@ async function cleanCatalog() {
         `);
 
         if (emptyPages.length > 0) {
-            console.log(`Se encontraron ${emptyPages.length} páginas vacías. Ocultando...`);
+            spinner.text = `Se encontraron ${emptyPages.length} páginas vacías. Ocultando...`;
             for (const page of emptyPages) {
                 await connection.execute("UPDATE catalog_pages SET visible = '0', enabled = '0', parent_id = -1 WHERE id = ?", [page.id]);
             }
-            console.log(`✅ Páginas vacías movidas al archivo oculto.`);
+            spinner.succeed(chalk.green('Páginas vacías movidas al archivo oculto.'));
+        } else {
+            spinner.info(chalk.blue('No se encontraron páginas vacías.'));
         }
 
     } catch (e) {
-        console.error("Error limpiando el catálogo:", e);
+        spinner.fail(chalk.red(`Error limpiando el catálogo: ${e.message}`));
     }
 
     await connection.end();
-    console.log("=== Limpieza completada ===");
+    console.log(chalk.cyan.bold('\n=== Limpieza completada ===\n'));
 }
 
 cleanCatalog();

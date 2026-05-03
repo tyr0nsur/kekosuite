@@ -1,8 +1,11 @@
 const mysql = require('mysql2/promise');
 const config = require('../config.js');
+const ora = require('ora');
+const chalk = require('chalk');
 
 async function generateOffers() {
-    console.log("=== Generador de Ofertas Relámpago ===");
+    console.log(chalk.magenta.bold('\n=== ⚡ Generador de Ofertas Relámpago ===\n'));
+    const spinner = ora('Conectando a la base de datos...').start();
 
     const dbConfig = {
         host: config.db_host,
@@ -14,35 +17,34 @@ async function generateOffers() {
     let connection;
     try {
         connection = await mysql.createConnection(dbConfig);
-        console.log("Conectado a MySQL.");
+        spinner.succeed(chalk.green('Conectado a MySQL.'));
     } catch (err) {
-        console.error("Error conectando a MySQL:", err.message);
+        spinner.fail(chalk.red(`Error conectando a MySQL: ${err.message}`));
         process.exit(1);
     }
 
     try {
-        console.log("Borrando ofertas antiguas...");
-        await connection.execute('TRUNCATE TABLE catalog_target_offers');
+        spinner.start('Borrando ofertas antiguas...');
+        await connection.execute('DELETE FROM catalog_target_offers');
+        spinner.succeed(chalk.green('Ofertas antiguas eliminadas.'));
 
-        console.log("Seleccionando 3 furnis aleatorios del catálogo...");
-        // Select 3 random catalog items that cost credits to make an offer on them
-        const [rows] = await connection.execute(`
+        spinner.start('Seleccionando 3 furnis aleatorios del catálogo (precio > 10)...');
+        const [items] = await connection.execute(`
             SELECT id, catalog_name, cost_credits 
             FROM catalog_items 
-            WHERE cost_credits > 10 AND amount = 1
-            ORDER BY RAND() 
-            LIMIT 3
+            WHERE cost_credits > 10 AND cost_points = 0 
+            ORDER BY RAND() LIMIT 3
         `);
 
-        if (rows.length < 3) {
-            console.log("No hay suficientes furnis en el catálogo para generar ofertas.");
-        } else {
-            for (let i = 0; i < rows.length; i++) {
-                const item = rows[i];
-                const newPrice = Math.max(1, Math.floor(item.cost_credits * 0.7)); // 30% discount
-                const offerCode = `LTD_OFFER_${i}_${Date.now()}`;
-                const title = `¡Oferta Especial: ${item.catalog_name}!`;
-                const desc = `¡Consigue este furni increíble con un 30% de descuento! Solo por tiempo limitado.`;
+        if (items.length > 0) {
+            spinner.text = 'Generando nuevas ofertas promocionales...';
+            for (const item of items) {
+                const offerCode = `PROMO_${item.catalog_name.toUpperCase()}_${Math.floor(Math.random() * 9999)}`;
+                const title = `¡Oferta Relámpago: ${item.catalog_name}!`;
+                const desc = `Obtén este increíble artículo con un 30% de descuento. ¡Solo por tiempo limitado!`;
+                
+                // 30% discount
+                const newPrice = Math.floor(item.cost_credits * 0.7);
 
                 await connection.execute(`
                     INSERT INTO catalog_target_offers 
@@ -57,11 +59,13 @@ async function generateOffers() {
                     item.id
                 ]);
             }
-            console.log(`✅ Se generaron 3 nuevas ofertas con éxito.`);
+            spinner.succeed(chalk.green.bold(`¡Éxito! Se generaron 3 nuevas ofertas promocionales con 30% de descuento.`));
+        } else {
+            spinner.info(chalk.blue('No se encontraron furnis elegibles para ofertas.'));
         }
 
     } catch (e) {
-        console.error("Error generando ofertas:", e);
+        spinner.fail(chalk.red(`Error generando ofertas: ${e.message}`));
     }
 
     await connection.end();
