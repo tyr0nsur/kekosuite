@@ -11,6 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Versión-1.0.5-blue.svg?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/Autor-eMiLiOp-orange.svg?style=flat-square" alt="Author">
+  <img src="https://img.shields.io/badge/Licencia-GPLv3-red.svg?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Soporte-Arcturus%20Morningstar-green.svg?style=flat-square" alt="Support">
   <img src="https://img.shields.io/badge/Entorno-Linux%20CLI-lightgrey.svg?style=flat-square" alt="CLI">
 </p>
@@ -106,6 +107,11 @@ kekosuite/
 
 ---
 
+## 📜 Licencia
+
+Este proyecto está distribuido bajo la licencia **GNU GPLv3**. 
+Esto significa que KekoSuite es de código abierto y completamente gratuito. Puedes usarlo, modificarlo y distribuirlo libremente. Sin embargo, si publicas una versión modificada de esta herramienta, **estás obligado** a mantenerla bajo la misma licencia libre (GPLv3) y compartir públicamente el código fuente de tus mejoras.
+
 <p align="center">
-  Hecho con ☕ por <b>eMiLiOp</b> para el futuro de los hoteles Keko.
+  Hecho con 💙 y ☕ por <b>eMiLiOp</b> para el futuro de la comunidad Arcturus.
 </p>
