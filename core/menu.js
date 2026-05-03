@@ -24,23 +24,18 @@ function checkServerStatus() {
     } catch(e) { return { isRunning: false, autoStart: false }; }
 }
 
-async function showHeader() {
-    console.clear();
-    console.log(gradient.pastel.multiline(figlet.textSync('KekoSuite', { horizontalLayout: 'fitted' })));
-    console.log(chalk.gray('  v1.0.5 — Premium Edition by eMiLiOp \n'));
+let bottomBar = new inquirer.ui.BottomBar();
 
-    const { isRunning, autoStart } = checkServerStatus();
-    
-    let statusText = `
-${chalk.bold('Estado:')} ${isRunning ? chalk.green('● ENCENDIDO') : chalk.red('○ APAGADO')}
-${chalk.bold('Auto-Start:')} ${autoStart ? chalk.green('Activo') : chalk.gray('Inactivo')}
-${chalk.bold('RAM:')} ${chalk.cyan(config.emulator_min_ram)} - ${chalk.cyan(config.emulator_max_ram)}
-    `.trim();
+function startLiveDashboard() {
+    setInterval(() => {
+        const activeTasks = TaskManager.getActiveTasks();
+        const taskIds = Object.keys(activeTasks);
+        if (taskIds.length === 0) {
+            bottomBar.updateBottomBar('');
+            return;
+        }
 
-    const activeTasks = TaskManager.getActiveTasks();
-    const taskIds = Object.keys(activeTasks);
-    if (taskIds.length > 0) {
-        statusText += `\n\n${chalk.magenta.bold('Procesos en Segundo Plano:')}\n`;
+        let statusText = `${chalk.magenta.bold('Procesos en Segundo Plano (En Vivo):')}\n`;
         taskIds.forEach(id => {
             const task = activeTasks[id];
             let percent = 0;
@@ -57,7 +52,30 @@ ${chalk.bold('RAM:')} ${chalk.cyan(config.emulator_min_ram)} - ${chalk.cyan(conf
                 statusText += `  ${chalk.cyan(bar)} ${percent}%\n`;
             }
         });
-    }
+
+        bottomBar.updateBottomBar(boxen(statusText.trim(), {
+            padding: 1,
+            borderStyle: 'round',
+            borderColor: 'magenta'
+        }) + '\n');
+    }, 1000);
+}
+
+// Iniciar el dashboard en vivo al cargar el archivo
+startLiveDashboard();
+
+async function showHeader() {
+    console.clear();
+    console.log(gradient.pastel.multiline(figlet.textSync('KekoSuite', { horizontalLayout: 'fitted' })));
+    console.log(chalk.gray('  v1.0.5 — Premium Edition by eMiLiOp \n'));
+
+    const { isRunning, autoStart } = checkServerStatus();
+    
+    let statusText = `
+${chalk.bold('Estado:')} ${isRunning ? chalk.green('● ENCENDIDO') : chalk.red('○ APAGADO')}
+${chalk.bold('Auto-Start:')} ${autoStart ? chalk.green('Activo') : chalk.gray('Inactivo')}
+${chalk.bold('RAM:')} ${chalk.cyan(config.emulator_min_ram)} - ${chalk.cyan(config.emulator_max_ram)}
+    `.trim();
 
     console.log(boxen(statusText, {
         padding: 1,
