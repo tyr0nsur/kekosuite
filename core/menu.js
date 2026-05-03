@@ -35,29 +35,29 @@ function startLiveDashboard() {
             return;
         }
 
-        let statusText = `${chalk.magenta.bold('Procesos en Segundo Plano (En Vivo):')}\n`;
+        let statusParts = [];
         taskIds.forEach(id => {
             const task = activeTasks[id];
             let percent = 0;
             if (task.total > 0) percent = Math.floor((task.progress / task.total) * 100);
             
             let statusColor = chalk.yellow;
-            if (task.status === 'completed') statusColor = chalk.green;
-            else if (task.status === 'failed') statusColor = chalk.red;
+            let icon = '▶';
+            if (task.status === 'completed') { statusColor = chalk.green; icon = '✔'; }
+            else if (task.status === 'failed') { statusColor = chalk.red; icon = '✖'; }
 
-            statusText += `${statusColor('●')} ${task.name} - ${chalk.gray(task.message)}\n`;
+            let taskStr = `${statusColor(icon)} ${task.name}`;
             if (task.status === 'running' && task.total > 0) {
-                const filled = Math.round(percent / 5);
-                const bar = '█'.repeat(filled) + '░'.repeat(20 - filled);
-                statusText += `  ${chalk.cyan(bar)} ${percent}%\n`;
+                const filled = Math.round(percent / 10);
+                const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
+                taskStr += ` ${chalk.cyan(bar)} ${percent}%`;
             }
+            statusParts.push(taskStr);
         });
 
-        bottomBar.updateBottomBar(boxen(statusText.trim(), {
-            padding: 1,
-            borderStyle: 'round',
-            borderColor: 'magenta'
-        }) + '\n');
+        // Single line bottom bar prevents inquirer prompt duplication
+        const finalBar = chalk.bgMagenta.white.bold(' SEGUNDO PLANO ') + ' ' + statusParts.join(chalk.gray('  |  '));
+        bottomBar.updateBottomBar(finalBar);
     }, 1000);
 }
 
