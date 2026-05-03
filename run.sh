@@ -132,15 +132,17 @@ menu_furnis() {
         echo -e " ${GREEN}3)${RESET} Importador Manual"
         echo -e " ${GREEN}4)${RESET} Reparador de Furnis"
         echo -e " ${GREEN}5)${RESET} Actualizador de Nombres (Traductor)"
+        echo -e " ${GREEN}6)${RESET} Generar Ofertas Especiales (Target Offers)"
         echo -e " ${RED}0)${RESET} Volver al Menú Principal"
         echo -e "${CYAN}==========================================${RESET}"
-        echo -ne "Selecciona [0-5]: "
+        echo -ne "Selecciona [0-6]: "
         read opt; case $opt in
             1) node core/mass_syncer.js; read -p "Enter..." ;;
             2) node core/auto_clothing_importer.js; read -p "Enter..." ;;
             3) node core/index.js; read -p "Enter..." ;;
             4) node core/furni_fixer.js; read -p "Enter..." ;;
             5) node core/name_updater.js; read -p "Enter..." ;;
+            6) node core/offers_generator.js; read -p "Enter..." ;;
             0) return ;;
         esac
     done
@@ -155,14 +157,18 @@ menu_mantenimiento() {
         echo -e " ${GREEN}2)${RESET} Encontrar Duplicados"
         echo -e " ${GREEN}3)${RESET} Limpiar Huérfanos"
         echo -e " ${GREEN}4)${RESET} Editor Masivo de Precios"
+        echo -e " ${GREEN}5)${RESET} Limpiar Catálogo (Páginas rotas e Items fantasma)"
+        echo -e " ${GREEN}6)${RESET} Descargar Iconos Faltantes (Auto-Download PNGs)"
         echo -e " ${RED}0)${RESET} Volver"
         echo -e "${CYAN}==========================================${RESET}"
-        echo -ne "Selecciona [0-4]: "
+        echo -ne "Selecciona [0-6]: "
         read opt; case $opt in
             1) node core/broken_furni_scanner.js; read -p "Enter..." ;;
             2) node core/duplicate_finder.js; read -p "Enter..." ;;
             3) node core/orphan_cleaner.js; read -p "Enter..." ;;
             4) node core/mass_price_updater.js; read -p "Enter..." ;;
+            5) node core/catalog_cleaner.js; read -p "Enter..." ;;
+            6) node core/icon_fetcher.js; read -p "Enter..." ;;
             0) return ;;
         esac
     done
