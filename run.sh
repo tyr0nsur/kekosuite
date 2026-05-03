@@ -23,11 +23,10 @@ WHITE='\e[37m'
 BOLD='\e[1m'
 RESET='\e[0m'
 
-# Verificar configuración inicial
-if [ ! -f "config.json" ]; then
-    echo -e "${YELLOW}No se encontró config.json. Iniciando asistente...${RESET}"
+if [ ! -f ".env" ]; then
+    echo -e "${YELLOW}No se encontró el archivo .env. Iniciando asistente...${RESET}"
     node core/setup.js
-    if [ ! -f "config.json" ]; then
+    if [ ! -f ".env" ]; then
         echo -e "${RED}Configuración cancelada.${RESET}"
         exit 1
     fi
@@ -51,7 +50,7 @@ print_header() {
 
 # Auxiliares de Servidor
 check_status() {
-    JAR_NAME=$(node -e "try { console.log(require('./config.json').emulator_jar_name) } catch(e) { console.log('') }")
+    JAR_NAME=$(node -e "try { console.log(require('./config.js').emulator_jar_name) } catch(e) { console.log('') }")
     if ps aux | grep -v grep | grep "$JAR_NAME" > /dev/null; then
         SERVER_STATUS="${GREEN}ENCENDIDO${RESET}"
         IS_RUNNING=true
@@ -71,7 +70,7 @@ check_status() {
 
 cambiar_version() {
     echo -e "${YELLOW}Buscando versiones disponibles...${RESET}"
-    LIVE_PATH=$(node -e "console.log(require('./config.json').emulator_live_path)")
+    LIVE_PATH=$(node -e "console.log(require('./config.js').emulator_live_path)")
     jars=($(ls "$LIVE_PATH"/*.jar 2>/dev/null | xargs -n 1 basename))
     if [ ${#jars[@]} -eq 0 ]; then
         echo -e "${RED}No se encontraron archivos .jar en $LIVE_PATH${RESET}"
@@ -86,9 +85,9 @@ cambiar_version() {
             SELECTED_JAR="${jars[$((jar_choice-1))]}"
             node -e "
                 const fs = require('fs');
-                const config = require('./config.json');
-                config.emulator_jar_name = '$SELECTED_JAR';
-                fs.writeFileSync('./config.json', JSON.stringify(config, null, 4));
+                let env = fs.readFileSync('./.env', 'utf8');
+                env = env.replace(/^EMULATOR_JAR_NAME=.*$/m, 'EMULATOR_JAR_NAME=\"$SELECTED_JAR\"');
+                fs.writeFileSync('./.env', env);
             "
             echo -e "✅ ${BOLD}Versión cambiada a $SELECTED_JAR.${RESET}"
         else
@@ -101,8 +100,8 @@ cambiar_ram() {
     print_header
     echo -e "   ${YELLOW}🧠 CONFIGURACIÓN DE MEMORIA RAM${RESET}"
     echo -e "${CYAN}==========================================${RESET}"
-    CUR_MIN=$(node -e "try { console.log(require('./config.json').emulator_min_ram) } catch(e) { console.log('1G') }")
-    CUR_MAX=$(node -e "try { console.log(require('./config.json').emulator_max_ram) } catch(e) { console.log('2G') }")
+    CUR_MIN=$(node -e "try { console.log(require('./config.js').emulator_min_ram) } catch(e) { console.log('1G') }")
+    CUR_MAX=$(node -e "try { console.log(require('./config.js').emulator_max_ram) } catch(e) { console.log('2G') }")
     
     echo -e " RAM Actual: ${CYAN}Mín: $CUR_MIN / Máx: $CUR_MAX${RESET}"
     echo -e "${CYAN}==========================================${RESET}"
@@ -113,10 +112,10 @@ cambiar_ram() {
     
     node -e "
         const fs = require('fs');
-        const config = require('./config.json');
-        if ('$n_min') config.emulator_min_ram = '$n_min';
-        if ('$n_max') config.emulator_max_ram = '$n_max';
-        fs.writeFileSync('./config.json', JSON.stringify(config, null, 4));
+        let env = fs.readFileSync('./.env', 'utf8');
+        if ('$n_min') env = env.replace(/^EMULATOR_MIN_RAM=.*$/m, 'EMULATOR_MIN_RAM=\"$n_min\"');
+        if ('$n_max') env = env.replace(/^EMULATOR_MAX_RAM=.*$/m, 'EMULATOR_MAX_RAM=\"$n_max\"');
+        fs.writeFileSync('./.env', env);
     "
     echo -e "✅ ${BOLD}Configuración de RAM actualizada.${RESET}"
 }
@@ -222,10 +221,10 @@ menu_servidor() {
         echo -ne "\nSelecciona [0-$MAX]: "
         read opt_s
 
-        JAR_NAME=$(node -e "try { console.log(require('./config.json').emulator_jar_name) } catch(e) { console.log('') }")
-        LIVE_PATH=$(node -e "try { console.log(require('./config.json').emulator_live_path) } catch(e) { console.log('') }")
-        MIN_RAM=$(node -e "try { console.log(require('./config.json').emulator_min_ram) } catch(e) { console.log('1G') }")
-        MAX_RAM=$(node -e "try { console.log(require('./config.json').emulator_max_ram) } catch(e) { console.log('2G') }")
+    JAR_NAME=$(node -e "try { console.log(require('./config.js').emulator_jar_name) } catch(e) { console.log('') }")
+    LIVE_PATH=$(node -e "try { console.log(require('./config.js').emulator_live_path) } catch(e) { console.log('') }")
+    MIN_RAM=$(node -e "try { console.log(require('./config.js').emulator_min_ram) } catch(e) { console.log('1G') }")
+    MAX_RAM=$(node -e "try { console.log(require('./config.js').emulator_max_ram) } catch(e) { console.log('2G') }")
 
         case $opt_s in
             0) return ;;

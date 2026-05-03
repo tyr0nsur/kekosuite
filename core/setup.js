@@ -44,9 +44,29 @@ async function main() {
     config.emulator_live_path = await question("Ruta absoluta a la carpeta del servidor en vivo: ");
     config.emulator_jar_name = await question("Nombre del archivo .jar del emulador (ej. Habbo-3.6.0.jar): ");
 
-    fs.writeFileSync('config.json', JSON.stringify(config, null, 4));
+    const envContent = `API_TOKEN="${config.api_token}"
+DB_HOST="${config.db_host}"
+DB_USER="${config.db_user}"
+DB_PASS="${config.db_pass}"
+DB_NAME="${config.db_name}"
+FURNITURE_DATA_PATH="${config.furniture_data_path}"
+NITRO_BUNDLED_PATH="${config.nitro_bundled_path}"
+CONVERTER_CWD="${config.converter_cwd}"
+CONVERTER_SWF_PATH="${config.converter_swf_path}"
+CONVERTER_BUNDLED_PATH="${config.converter_bundled_path}"
+CMS_PATH="${config.cms_path}"
+CMS_ICONS_PATH="${config.cms_icons_path}"
+DCR_ICONS_PATH="${config.dcr_icons_path}"
+EMULATOR_REPO_URL="${config.emulator_repo_url}"
+EMULATOR_SOURCE_PATH="${config.emulator_source_path}"
+EMULATOR_LIVE_PATH="${config.emulator_live_path}"
+EMULATOR_JAR_NAME="${config.emulator_jar_name}"
+EMULATOR_MIN_RAM="512M"
+EMULATOR_MAX_RAM="2G"`;
 
-    console.log("\n✅ Configuración guardada exitosamente en 'config.json'!");
+    fs.writeFileSync('.env', envContent);
+
+    console.log("\n✅ Configuración guardada exitosamente en '.env'!");
     console.log("Ya puedes empezar a usar Habbo Tools Suite.");
     rl.close();
 }
